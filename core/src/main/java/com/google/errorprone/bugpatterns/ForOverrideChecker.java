@@ -18,6 +18,7 @@ package com.google.errorprone.bugpatterns;
 
 import static com.google.errorprone.BugPattern.SeverityLevel.ERROR;
 
+import javax.lang.model.element.ElementKind;
 import com.google.errorprone.BugPattern;
 import com.google.errorprone.VisitorState;
 import com.google.errorprone.bugpatterns.BugChecker.MethodInvocationTreeMatcher;
@@ -121,11 +122,14 @@ public class ForOverrideChecker extends BugChecker
 
       if (!overriddenMethods.isEmpty()) {
         MethodSymbol nearestForOverrideMethod = overriddenMethods.get(0);
+        // Can't restrict the visibility of interface methods.
+        if(nearestForOverrideMethod.getEnclosingElement().getKind() == ElementKind.INTERFACE) {
+          return Description.NO_MATCH;
+          }
         String customMessage = "must have protected or package-private visibility";
         if (nearestForOverrideMethod.equals(method)) {
           // The method itself is @ForOverride but is too visible
           customMessage = MESSAGE_BASE + customMessage;
-
         } else {
           // The method overrides an @ForOverride method and expands its visibility
           customMessage =
